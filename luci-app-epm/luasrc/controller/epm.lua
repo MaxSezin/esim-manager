@@ -7,7 +7,7 @@ local util = require "luci.util"
 local uci = require "luci.model.uci".cursor()
 
 function index()
-    entry({"admin", "modem", "epm"}, cbi("epm"), _("eSIM Manager"), 60)
+    entry({"admin", "modem", "epm"}, view("epm/main"), _("eSIM Manager"), 60)
     entry({"admin", "modem", "epm", "status"}, call("epm_status"), nil).leaf = true
     entry({"admin", "modem", "epm", "profiles"}, call("epm_profiles"), nil).leaf = true
     entry({"admin", "modem", "epm", "toggle"}, call("epm_toggle"), nil).leaf = true
