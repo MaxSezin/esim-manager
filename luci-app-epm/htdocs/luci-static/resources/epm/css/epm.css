@@ -38,6 +38,15 @@
     --box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     --box-shadow-hover: 0 4px 8px rgba(0,0,0,0.15);
 
+    /* Corner radius / elevation: this theme (like the vendor's own "5G
+       Modem" page) draws sections as rounded, subtly-shadowed cards rather
+       than flat boxes. --proton-radius* has no equivalent in the generic
+       LuCI variable set, so it's read with a plain fallback rather than
+       degrading to square corners on other themes. */
+    --epm-radius: var(--proton-radius, 10px);
+    --epm-radius-sm: var(--proton-radius-sm, 6px);
+    --epm-shadow-card: var(--proton-shadow-sm, 0 2px 8px rgba(0,0,0,0.08));
+
     /* Surface tokens: this app renders its own card/tab UI inside whatever
        LuCI theme is active. These are the only theme-dependent colors -
        everything below reads from them so the whole app adapts to the host
@@ -71,8 +80,15 @@
 
 /* Common form styles */
 .cbi-value {
-    margin: 10px 0;
-    border: none !important;
+    margin: 0;
+    padding: 10px 0;
+    border: none;
+    border-bottom: 1px solid var(--epm-card-border);
+}
+
+.cbi-value:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
 }
 
 .cbi-value-title {
@@ -94,18 +110,18 @@
 .cbi-input-select,
 .cbi-input-file {
     width: 100%;
-    padding: 8px;
+    padding: 8px 10px;
     border: 1px solid var(--epm-input-border);
-    border-radius: 4px;
+    border-radius: var(--epm-radius-sm);
     background: var(--epm-input-bg);
     color: var(--epm-input-text);
 }
 
 .cbi-input-textarea {
     width: 100%;
-    padding: 8px;
+    padding: 8px 10px;
     border: 1px solid var(--epm-input-border);
-    border-radius: 4px;
+    border-radius: var(--epm-radius-sm);
     background: var(--epm-input-bg);
     color: var(--epm-input-text);
     font-family: monospace;
@@ -115,9 +131,9 @@
 /* Configuration specific inputs */
 .cbi-value-field .cbi-input-text,
 .cbi-value-field .cbi-input-select {
-    width: 200px;
-    padding: 4px;
-    border-radius: 3px;
+    width: 220px;
+    padding: 6px 10px;
+    border-radius: var(--epm-radius-sm);
 }
 
 .file-help {
@@ -296,15 +312,16 @@
 }
 
 .cbi-tabcontainer {
-    border: 1px solid var(--epm-card-border);
-    background: var(--epm-card-bg);
-    /* This app always renders its tab content on its own card regardless of
-       the host LuCI theme. Some themes set a light (or dark) default text
-       color at the body/page level; without an explicit color here, that
-       text inherits straight through and can become unreadable against our
-       card background. Elements that already declare their own color
-       (status badges, buttons, links, .file-help, etc.) are unaffected
-       since a direct rule always wins over inheritance. */
+    /* This container itself stays transparent - it just holds the tabs'
+       content on the page background, matching how native LuCI pages
+       (and the vendor's own "5G Modem" page) work: .cbi-section is the
+       actual visual card, not the page/container around it. Some themes
+       set a light (or dark) default text color only at the body level;
+       without an explicit color here that could inherit oddly into loose
+       text that isn't inside a .cbi-section card, so it's set defensively.
+       Elements that already declare their own color (status badges,
+       buttons, links, .file-help, etc.) are unaffected since a direct rule
+       always wins over inheritance. */
     color: var(--epm-card-text);
     min-height: 20em;
 }
@@ -317,10 +334,23 @@
     display: block !important;
 }
 
-/* Tab content resets */
-.cbi-tabcontent .cbi-section,
+/* Each <fieldset class="cbi-section"> becomes its own rounded, shadowed
+   card (matching the theme's native section styling and the vendor's "5G
+   Modem" page) instead of a flat, borderless block. */
+.cbi-tabcontent .cbi-section {
+    background: var(--epm-card-bg);
+    border: 1px solid var(--epm-card-border);
+    border-radius: var(--epm-radius);
+    box-shadow: var(--epm-shadow-card);
+    margin: 0 0 20px;
+    padding: 20px;
+}
+
+.cbi-tabcontent .cbi-section:last-child {
+    margin-bottom: 0;
+}
+
 .cbi-tabcontent .cbi-section-node {
-    border: none !important;
     margin: 0;
     padding: 0;
 }
@@ -329,12 +359,19 @@
     margin-top: 0;
 }
 
-.cbi-tabcontent fieldset {
-    border: none !important;
-}
-
+/* Reset the browser's native <legend> box (which normally overlaps the
+   fieldset border) and style it as a plain card heading instead. */
 .cbi-tabcontent legend {
-    border: none !important;
+    display: block;
+    width: 100%;
+    float: none;
+    padding: 0 0 12px;
+    margin: 0 0 16px;
+    border: none;
+    border-bottom: 1px solid var(--epm-card-border);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--epm-card-text);
 }
 
 .cbi-tabcontent hr {
@@ -359,7 +396,7 @@
     text-align: center;
     padding: 15px;
     background-color: var(--epm-header-bg);
-    border-radius: var(--border-radius);
+    border-radius: var(--epm-radius);
     border: 1px solid var(--epm-card-border);
 }
 
@@ -372,9 +409,10 @@
 .cbi-page-custom-actions {
     margin-top: 20px;
     text-align: center;
-    border-top: 1px solid var(--epm-card-border);
-    padding: 15px;
     background-color: var(--epm-header-bg);
+    border: 1px solid var(--epm-card-border);
+    border-radius: var(--epm-radius);
+    padding: 15px;
 }
 
 .cbi-page-custom-actions {
@@ -409,7 +447,7 @@
 
 #qr-preview-container {
     background: var(--epm-qr-preview-bg);
-    border-radius: 8px;
+    border-radius: var(--epm-radius);
     padding: 15px;
     border: 1px solid var(--epm-qr-preview-border);
 }
@@ -490,8 +528,8 @@
     right: 0;
     background: var(--epm-dropdown-bg);
     border: 1px solid var(--epm-dropdown-border);
-    border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-radius: var(--epm-radius-sm);
+    box-shadow: var(--epm-shadow-card);
     min-width: 160px;
     z-index: 1000;
     display: none;
