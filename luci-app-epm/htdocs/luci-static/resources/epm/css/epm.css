@@ -16,12 +16,102 @@
     --gray-color: #6c757d;
     --gray-hover: #5a6268;
     --purple-color: #f1057f;
-    --purple-hover: #dd0578;    
+    --purple-hover: #dd0578;
     --light-bg: #f8f9fa;
     --border-color: #dee2e6;
     --border-radius: 6px;
     --box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     --box-shadow-hover: 0 4px 8px rgba(0,0,0,0.15);
+
+    /* Surface tokens: this app renders its own card/tab UI inside whatever
+       LuCI theme is active. These are the only theme-dependent colors -
+       everything below reads from them so the whole app adapts to light vs.
+       dark themes instead of always assuming a light host theme. */
+    --epm-card-bg: #ffffff;
+    --epm-card-text: #212529;
+    --epm-card-border: var(--border-color);
+    --epm-muted-text: #666666;
+    --epm-header-bg: #f8f9fa;
+    --epm-header-text: #495057;
+    --epm-input-bg: #ffffff;
+    --epm-input-border: #cccccc;
+    --epm-input-text: #212529;
+    --epm-tab-inactive-bg: #f0f0f0;
+    --epm-tab-inactive-text: #666666;
+    --epm-tab-active-bg: #ffffff;
+    --epm-tab-active-text: #000000;
+    --epm-tab-border: #cccccc;
+    --epm-qr-preview-bg: #f9f9f9;
+    --epm-qr-preview-border: #e0e0e0;
+    --epm-dropdown-bg: #ffffff;
+    --epm-dropdown-border: #cccccc;
+    --epm-dropdown-item-border: #f0f0f0;
+    --epm-dropdown-hover-bg: #f8f9fa;
+    --epm-table-hover-bg: #f8f9fa;
+    --epm-button-bg: #ffffff;
+    --epm-button-border: #cccccc;
+    --epm-button-hover-border: #9ca3af;
+}
+
+/* Dark palette: applied when either the browser/OS prefers a dark color
+   scheme, or the host theme explicitly marks itself dark via
+   <html data-theme="dark">. The explicit attribute always wins over the
+   media query (see the un-guarded block below), so a theme toggle that
+   contradicts the OS preference still renders correctly. */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --epm-card-bg: #1c222b;
+        --epm-card-text: #e5e9f0;
+        --epm-card-border: #333b46;
+        --epm-muted-text: #9aa4b2;
+        --epm-header-bg: #242b35;
+        --epm-header-text: #cbd5e1;
+        --epm-input-bg: #161b22;
+        --epm-input-border: #3a4250;
+        --epm-input-text: #e5e9f0;
+        --epm-tab-inactive-bg: #1a2029;
+        --epm-tab-inactive-text: #9aa4b2;
+        --epm-tab-active-bg: #1c222b;
+        --epm-tab-active-text: #ffffff;
+        --epm-tab-border: #333b46;
+        --epm-qr-preview-bg: #1a2029;
+        --epm-qr-preview-border: #333b46;
+        --epm-dropdown-bg: #1c222b;
+        --epm-dropdown-border: #333b46;
+        --epm-dropdown-item-border: #2a313c;
+        --epm-dropdown-hover-bg: #242b35;
+        --epm-table-hover-bg: #242b35;
+        --epm-button-bg: #1c222b;
+        --epm-button-border: #3a4250;
+        --epm-button-hover-border: #55606f;
+    }
+}
+
+:root[data-theme="dark"] {
+    --epm-card-bg: #1c222b;
+    --epm-card-text: #e5e9f0;
+    --epm-card-border: #333b46;
+    --epm-muted-text: #9aa4b2;
+    --epm-header-bg: #242b35;
+    --epm-header-text: #cbd5e1;
+    --epm-input-bg: #161b22;
+    --epm-input-border: #3a4250;
+    --epm-input-text: #e5e9f0;
+    --epm-tab-inactive-bg: #1a2029;
+    --epm-tab-inactive-text: #9aa4b2;
+    --epm-tab-active-bg: #1c222b;
+    --epm-tab-active-text: #ffffff;
+    --epm-tab-border: #333b46;
+    --epm-qr-preview-bg: #1a2029;
+    --epm-qr-preview-border: #333b46;
+    --epm-dropdown-bg: #1c222b;
+    --epm-dropdown-border: #333b46;
+    --epm-dropdown-item-border: #2a313c;
+    --epm-dropdown-hover-bg: #242b35;
+    --epm-table-hover-bg: #242b35;
+    --epm-button-bg: #1c222b;
+    --epm-button-border: #3a4250;
+    --epm-button-hover-border: #55606f;
 }
 
 /* Common form styles */
@@ -50,16 +140,19 @@
 .cbi-input-file {
     width: 100%;
     padding: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--epm-input-border);
     border-radius: 4px;
-    background: white;
+    background: var(--epm-input-bg);
+    color: var(--epm-input-text);
 }
 
 .cbi-input-textarea {
     width: 100%;
     padding: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--epm-input-border);
     border-radius: 4px;
+    background: var(--epm-input-bg);
+    color: var(--epm-input-text);
     font-family: monospace;
     resize: vertical;
 }
@@ -74,8 +167,31 @@
 
 .file-help {
     font-size: 11px;
-    color: #666;
+    color: var(--epm-muted-text);
     margin-top: 5px;
+}
+
+/* Some host themes set text color directly on generic tags (td, legend,
+   label, headings) rather than only at the body level; a direct rule on
+   the element always wins over the inherited color set on .cbi-tabcontainer
+   below, so plain content text can stay invisible on our card even with
+   that inherited color in place. Force it here instead. Status badges,
+   buttons, links, and .file-help keep their own explicit colors untouched
+   since this list only covers plain/unstyled elements. */
+.cbi-tabcontainer td,
+.cbi-tabcontainer th,
+.cbi-tabcontainer legend,
+.cbi-tabcontainer label,
+.cbi-tabcontainer .cbi-value-title,
+.cbi-tabcontainer h1,
+.cbi-tabcontainer h2,
+.cbi-tabcontainer h3,
+.cbi-tabcontainer h4 {
+    color: var(--epm-card-text) !important;
+}
+
+.cbi-tabcontainer .file-help {
+    color: var(--epm-muted-text) !important;
 }
 
 /* ==========================================================================
@@ -83,8 +199,9 @@
    ========================================================================== */
 
 .cbi-button {
-    background: #fff;
-    border: 1px solid #ccc;
+    background: var(--epm-button-bg);
+    color: var(--epm-card-text);
+    border: 1px solid var(--epm-button-border);
     border-radius: 3px;
     padding: 0.5em 1em;
     cursor: pointer;
@@ -95,7 +212,7 @@
 
 .cbi-button:hover {
     box-shadow: var(--box-shadow-hover);
-    border-color: #9ca3af;
+    border-color: var(--epm-button-hover-border);
 }
 
 .cbi-button:disabled {
@@ -107,7 +224,7 @@
 /* Button variants */
 .cbi-button-save { background: #5bc0de; color: white; border-color: #46b8da; }
 .cbi-button-apply { background: var(--success-color); color: white; border-color: #4cae4c; }
-.cbi-button-reload { background: var(--light-bg); border-color: var(--gray-color); }
+.cbi-button-reload { background: var(--epm-header-bg); color: var(--epm-header-text); border-color: var(--gray-color); }
 .cbi-button-reset { background: var(--gray-color); color: white; border-color: var(--gray-hover); }
 
 /* Action buttons (universal) */
@@ -191,7 +308,7 @@
    ========================================================================== */
 
 .cbi-tabmenu {
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid var(--epm-tab-border);
     margin-bottom: 1em;
 }
 
@@ -209,31 +326,31 @@
 .cbi-tab a {
     display: block;
     padding: 0.5em 1em;
-    background: #f0f0f0;
-    border: 1px solid #ccc;
+    background: var(--epm-tab-inactive-bg);
+    border: 1px solid var(--epm-tab-border);
     border-bottom: none;
     text-decoration: none;
-    color: #666;
+    color: var(--epm-tab-inactive-text);
     border-radius: 0.5em 0.5em 0 0;
 }
 
 .cbi-tab:hover a,
 .cbi-tab-active a {
-    background: #fff;
-    color: #000;
+    background: var(--epm-tab-active-bg);
+    color: var(--epm-tab-active-text);
 }
 
 .cbi-tabcontainer {
-    border: none;
-    background: #fff;
-    /* This app always renders its tab content on a white card regardless of
-       the host LuCI theme. Some themes set a light default text color at
-       the body/page level; without an explicit color here, that light text
-       inherits straight through onto our white background and becomes
-       unreadable ("ghost" text). Elements that already declare their own
-       color (status badges, buttons, links, .file-help, etc.) are
-       unaffected since a direct rule always wins over inheritance. */
-    color: #212529;
+    border: 1px solid var(--epm-card-border);
+    background: var(--epm-card-bg);
+    /* This app always renders its tab content on its own card regardless of
+       the host LuCI theme. Some themes set a light (or dark) default text
+       color at the body/page level; without an explicit color here, that
+       text inherits straight through and can become unreadable against our
+       card background. Elements that already declare their own color
+       (status badges, buttons, links, .file-help, etc.) are unaffected
+       since a direct rule always wins over inheritance. */
+    color: var(--epm-card-text);
     min-height: 20em;
 }
 
@@ -286,13 +403,13 @@
     margin: 20px 0;
     text-align: center;
     padding: 15px;
-    background-color: var(--light-bg);
+    background-color: var(--epm-header-bg);
     border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--epm-card-border);
 }
 
 .config-actions {
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--epm-card-border);
     border: none;
 }
 
@@ -300,9 +417,9 @@
 .cbi-page-custom-actions {
     margin-top: 20px;
     text-align: center;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid var(--epm-card-border);
     padding: 15px;
-    background-color: var(--light-bg);
+    background-color: var(--epm-header-bg);
 }
 
 .cbi-page-custom-actions {
@@ -312,7 +429,7 @@
 .bulk-actions-container h4,
 .cbi-page-custom-actions h4 {
     margin-bottom: 15px;
-    color: #333;
+    color: var(--epm-header-text);
 }
 
 /* ==========================================================================
@@ -336,10 +453,10 @@
    ========================================================================== */
 
 #qr-preview-container {
-    background: #f9f9f9;
+    background: var(--epm-qr-preview-bg);
     border-radius: 8px;
     padding: 15px;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--epm-qr-preview-border);
 }
 
 #qr-decode-status div {
@@ -416,8 +533,8 @@
     position: absolute;
     top: 100%;
     right: 0;
-    background: white;
-    border: 1px solid #ccc;
+    background: var(--epm-dropdown-bg);
+    border: 1px solid var(--epm-dropdown-border);
     border-radius: 4px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     min-width: 160px;
@@ -434,12 +551,13 @@
     padding: 12px 16px;
     cursor: pointer;
     font-size: 14px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--epm-dropdown-item-border);
     transition: background-color 0.2s;
     display: flex;
     align-items: center;
     gap: 10px;
     white-space: nowrap;
+    color: var(--epm-card-text);
 }
 
 .dropdown-item:last-child {
@@ -447,7 +565,7 @@
 }
 
 .dropdown-item:hover {
-    background-color: var(--light-bg);
+    background-color: var(--epm-dropdown-hover-bg);
 }
 
 .dropdown-item.danger {
@@ -507,21 +625,21 @@
 #notifications-table td {
     padding: 12px;
     text-align: left;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--epm-card-border);
     vertical-align: middle;
 }
 
 #profiles-table th,
 #notifications-table th {
-    background-color: var(--light-bg);
+    background-color: var(--epm-header-bg);
     font-weight: bold;
-    color: #495057;
-    border-top: 1px solid var(--border-color);
+    color: var(--epm-header-text);
+    border-top: 1px solid var(--epm-card-border);
 }
 
 #profiles-table tbody tr:hover,
 #notifications-table tbody tr:hover {
-    background-color: var(--light-bg);
+    background-color: var(--epm-table-hover-bg);
 }
 
 /* ==========================================================================
@@ -532,12 +650,12 @@
     .table-responsive {
         overflow-x: auto;
     }
-    
+
     .cbi-value-field {
         width: calc(100% - 160px);
         min-width: 150px;
     }
-    
+
     .profile-status,
     .profile-action-btn,
     .notification-action-btn {
@@ -545,18 +663,18 @@
         font-size: 12px;
         padding: 6px 12px;
     }
-    
+
     .notification-action-btn {
         min-width: 60px !important;
         font-size: 11px !important;
         padding: 4px 8px !important;
     }
-    
+
     .download-action-btn {
         min-width: 100px !important;
         margin: 5px !important;
     }
-    
+
     .dropdown-toggle {
         min-width: 26px !important;
         max-width: 26px !important;
