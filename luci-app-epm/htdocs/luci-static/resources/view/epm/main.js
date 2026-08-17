@@ -808,8 +808,12 @@ return view.extend({
 		self._ctx = ctx;
 
 		var tabList = E('ul', { 'class': 'cbi-tabmenu' }, TABS.map(function(tab, i) {
+			/* No href: an <a> only gets the browser's default link/visited
+			   styling (blue text, underline) when it has one. Since this
+			   never navigates anyway (click always calls preventDefault),
+			   omitting href lets the theme's own .cbi-tabmenu li a color
+			   rule apply cleanly instead of competing with link defaults. */
 			var a = E('a', {
-				'href': '#',
 				'click': function(ev) {
 					ev.preventDefault();
 					self.showTab(tab.id, tabLinks, tabPanels);
