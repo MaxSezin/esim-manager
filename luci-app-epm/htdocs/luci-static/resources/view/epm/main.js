@@ -602,8 +602,15 @@ var ConfigTab = {
 		function select(id, options, value) {
 			var sel = E('select', { 'class': 'cbi-input-select', 'id': id });
 			options.forEach(function(o) {
-				sel.appendChild(E('option', { 'value': o[0], 'selected': o[0] === value ? '' : null }, [ o[1] ]));
+				sel.appendChild(E('option', { 'value': o[0] }, [ o[1] ]));
 			});
+			/* Set .value only after every <option> is appended, and do it as a
+			   DOM property assignment rather than a "selected" attribute on
+			   individual <option> elements built before insertion - the latter
+			   is unreliable across browsers/E() attribute handling and left
+			   the dropdown always showing its first option regardless of the
+			   loaded config. */
+			sel.value = value;
 			return sel;
 		}
 
