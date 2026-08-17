@@ -47,6 +47,9 @@ function build_lpac_env()
             qmi_sim_slot = '1',
             mbim_device = '/dev/cdc-wdm0',
             mbim_proxy = '0',
+            mbim_sim_slot = '1',
+            tls_gnutls_preload = '0',
+            tls_gnutls_preload_path = '/usr/lib/libcurl-gnutls.so.4',
             apdu_debug = '0',
             http_debug = '0',
             at_debug = '0',
@@ -85,6 +88,10 @@ function build_lpac_env()
         table.insert(env_vars, "MBIM_USE_PROXY=" .. config.mbim_proxy)
     end
 
+    if config.mbim_sim_slot then
+        table.insert(env_vars, "LPAC_APDU_MBIM_UIM_SLOT=" .. config.mbim_sim_slot)
+    end
+
     if config.apdu_debug and config.apdu_debug ~= '0' then
         table.insert(env_vars, "LIBEUICC_DEBUG_APDU=1")
     end
@@ -97,6 +104,20 @@ function build_lpac_env()
         table.insert(env_vars, "AT_DEBUG=1")
     end
 
+    -- Optional TLS workaround: preload a GnuTLS-backed libcurl for lpac's
+    -- HTTP backend, needed when the system libcurl (mbedTLS) can't validate
+    -- the SM-DP+ server's root CA (GSMA RSP2 Root CI1).
+    if config.tls_gnutls_preload and config.tls_gnutls_preload ~= '0' then
+        local preload_path = config.tls_gnutls_preload_path
+        if preload_path and preload_path ~= '' then
+            local f = io.open(preload_path, "r")
+            if f then
+                f:close()
+                table.insert(env_vars, 1, "LD_PRELOAD=" .. preload_path)
+            end
+        end
+    end
+
     return table.concat(env_vars, " ")
 end
 
@@ -105,9 +126,14 @@ function exec_lpac_command(cmd_args, timeout_seconds)
     local env = build_lpac_env()
     local timeout = timeout_seconds or 30
     local full_cmd = env .. " timeout " .. timeout .. " /usr/lib/lpac " .. cmd_args
-    
+
     -- Debug
-    luci.sys.exec("logger -t epm 'Executing: " .. full_cmd .. "'")
+    -- full_cmd already contains shellquote()'d arguments wrapped in single
+    -- quotes; nesting it inside another pair of single quotes here would
+    -- break out of those quotes and let the shell re-expand $ inside them
+    -- (e.g. activation codes like LPA:1$smdp$matchingid). Quote the whole
+    -- log message as one argument instead.
+    luci.sys.exec("logger -t epm " .. util.shellquote("Executing: " .. full_cmd))
     
     local result = sys.exec(full_cmd)
     local exit_code = os.execute(full_cmd .. " >/dev/null 2>&1")
@@ -267,6 +293,9 @@ function epm_config()
             qmi_sim_slot = '1',
             mbim_device = '/dev/cdc-wdm0',
             mbim_proxy = '0',
+            mbim_sim_slot = '1',
+            tls_gnutls_preload = '0',
+            tls_gnutls_preload_path = '/usr/lib/libcurl-gnutls.so.4',
             apdu_debug = '0',
             http_debug = '0',
             at_debug = '0',

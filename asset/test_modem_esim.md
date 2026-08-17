@@ -66,6 +66,12 @@ The following table shows modules on which the application has been tested:
         </ul>
 </div>
 
+**Foxconn T99W175 (MV31-W)**: the MBIM APDU backend only reaches the eUICC (embedded/internal eSIM)
+when the correct SIM slot is selected — on this modem the eUICC lives on slot 2, not slot 1. Use the
+**MBIM SIM Slot** option on the Config tab (added alongside the existing QMI SIM Slot option) to set it;
+otherwise `lpac` will talk to the physical SIM slot instead and eSIM operations will fail or silently
+target the wrong slot.
+
 Quectel **RM551E-GL** is still in ES stage, and its firmware has some problems during eSIM operation.
 The following eSIMs were used as *Physical eSIM*:
 

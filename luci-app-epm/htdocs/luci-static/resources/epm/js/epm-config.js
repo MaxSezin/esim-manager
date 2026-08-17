@@ -56,7 +56,12 @@ function populateForm(config) {
         document.getElementById('qmi_sim_slot').value = config.epm.qmi_sim_slot || '1';
         document.getElementById('mbim_device').value = config.epm.mbim_device || '/dev/cdc-wdm0';
         document.getElementById('mbim_proxy').value = config.epm.mbim_proxy || '0';
-        
+        document.getElementById('mbim_sim_slot').value = config.epm.mbim_sim_slot || '1';
+
+        // TLS workaround settings
+        document.getElementById('tls_gnutls_preload').value = config.epm.tls_gnutls_preload || '0';
+        document.getElementById('tls_gnutls_preload_path').value = config.epm.tls_gnutls_preload_path || '/usr/lib/libcurl-gnutls.so.4';
+
         // Reboot settings
         document.getElementById('reboot_method').value = config.epm.reboot_method || 'at';
         document.getElementById('reboot_at_command').value = config.epm.reboot_at_command || 'AT+CFUN=1,1';
@@ -77,6 +82,7 @@ function populateForm(config) {
     // Update field visibility based on current selections
     onBackendChange();
     onRebootMethodChange();
+    onTlsPreloadChange();
 }
 
 function setDefaultValues() {
@@ -89,7 +95,12 @@ function setDefaultValues() {
     document.getElementById('qmi_sim_slot').value = '1';
     document.getElementById('mbim_device').value = '/dev/cdc-wdm0';
     document.getElementById('mbim_proxy').value = '0';
-    
+    document.getElementById('mbim_sim_slot').value = '1';
+
+    // TLS workaround defaults
+    document.getElementById('tls_gnutls_preload').value = '0';
+    document.getElementById('tls_gnutls_preload_path').value = '/usr/lib/libcurl-gnutls.so.4';
+
     // Reboot settings defaults
     document.getElementById('reboot_method').value = 'at';
     document.getElementById('reboot_at_command').value = 'AT+CFUN=1,1';
@@ -112,7 +123,8 @@ function onBackendChange() {
     document.getElementById('qmi-sim-slot-setting').style.display = 'none';
     document.getElementById('mbim-device-setting').style.display = 'none';
     document.getElementById('mbim-proxy-setting').style.display = 'none';
-    
+    document.getElementById('mbim-sim-slot-setting').style.display = 'none';
+
     // Show only relevant settings
     if (backend === 'at') {
         document.getElementById('at-device-setting').style.display = 'flex';
@@ -122,10 +134,16 @@ function onBackendChange() {
     } else if (backend === 'mbim') {
         document.getElementById('mbim-device-setting').style.display = 'flex';
         document.getElementById('mbim-proxy-setting').style.display = 'flex';
+        document.getElementById('mbim-sim-slot-setting').style.display = 'flex';
     }
-    
+
     // Update reboot method visibility
     onRebootMethodChange();
+}
+
+function onTlsPreloadChange() {
+    const enabled = document.getElementById('tls_gnutls_preload').value === '1';
+    document.getElementById('tls-preload-path-setting').style.display = enabled ? 'flex' : 'none';
 }
 
 function onRebootMethodChange() {
@@ -174,7 +192,12 @@ function saveConfig() {
             qmi_sim_slot: document.getElementById('qmi_sim_slot').value,
             mbim_device: document.getElementById('mbim_device').value,
             mbim_proxy: document.getElementById('mbim_proxy').value,
-            
+            mbim_sim_slot: document.getElementById('mbim_sim_slot').value,
+
+            // TLS workaround settings
+            tls_gnutls_preload: document.getElementById('tls_gnutls_preload').value,
+            tls_gnutls_preload_path: document.getElementById('tls_gnutls_preload_path').value,
+
             // Reboot settings
             reboot_method: document.getElementById('reboot_method').value,
             reboot_at_command: document.getElementById('reboot_at_command').value,
@@ -252,7 +275,21 @@ function validateConfig() {
             alert('MBIM device path must start with /dev/');
             return false;
         }
+
+        var mbimSlot = document.getElementById('mbim_sim_slot').value;
+        if (!validateSimSlot(mbimSlot)) {
+            alert('MBIM SIM slot must be 1 or 2');
+            return false;
+        }
     }
-    
+
+    if (document.getElementById('tls_gnutls_preload').value === '1') {
+        var preloadPath = document.getElementById('tls_gnutls_preload_path').value.trim();
+        if (!preloadPath) {
+            alert('GnuTLS library path is required when the TLS workaround is enabled');
+            return false;
+        }
+    }
+
     return true;
 }

@@ -82,6 +82,41 @@
                         <div class="file-help"><%:Enable MBIM proxy for MBIM APDU backend%></div>
                     </div>
                 </div>
+
+                <div class="cbi-value" id="mbim-sim-slot-setting">
+                    <label class="cbi-value-title"><%:MBIM SIM Slot%></label>
+                    <div class="cbi-value-field">
+                        <select id="mbim_sim_slot" name="mbim_sim_slot" class="cbi-input-select">
+                            <option value="1"><%:Slot 1%></option>
+                            <option value="2"><%:Slot 2%></option>
+                        </select>
+                        <div class="file-help"><%:SIM slot number for MBIM APDU operations (needed for eUICC/embedded eSIM on some modems, e.g. Foxconn T99W175 / Thales MV31-W)%></div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset class="cbi-section">
+            <legend><%:TLS Workaround%></legend>
+            <div class="cbi-section-node">
+                <div class="cbi-value">
+                    <label class="cbi-value-title"><%:GnuTLS Preload%></label>
+                    <div class="cbi-value-field">
+                        <select id="tls_gnutls_preload" name="tls_gnutls_preload" class="cbi-input-select" onchange="onTlsPreloadChange()">
+                            <option value="0"><%:Disabled%></option>
+                            <option value="1"><%:Enabled%></option>
+                        </select>
+                        <div class="file-help"><%:Preload a GnuTLS-backed libcurl before running lpac. Some firmware builds ship a system libcurl linked against mbedTLS, which fails to validate the SM-DP+ server certificate chain (GSMA RSP2 Root CI1). Requires the library below to already be installed.%></div>
+                    </div>
+                </div>
+
+                <div class="cbi-value" id="tls-preload-path-setting">
+                    <label class="cbi-value-title"><%:GnuTLS Library Path%></label>
+                    <div class="cbi-value-field">
+                        <input type="text" id="tls_gnutls_preload_path" name="tls_gnutls_preload_path" class="cbi-input-text" placeholder="/usr/lib/libcurl-gnutls.so.4" />
+                        <div class="file-help"><%:Path to the GnuTLS-backed libcurl shared library (e.g. installed via 'apk add libcurl-gnutls4'). Path may differ across targets/architectures.%></div>
+                    </div>
+                </div>
             </div>
         </fieldset>
 
