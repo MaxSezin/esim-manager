@@ -1008,12 +1008,33 @@ function reboot_modem()
         method_used = "MBIM"
         luci.sys.exec("logger -t epm 'Using MBIM reboot method on " .. mbim_device .. "'")
         
+    elseif config.reboot_method == 'mmcli' then
+        -- ModemManager reset. On some modems/firmware (seen on Foxconn T99W175 /
+        -- Thales MV31-W) the eUICC/MBIM channel used for eSIM management can get
+        -- stuck after a profile enable/disable (lpac calls start failing with
+        -- "no channel response received" / "euicc_init"), and neither an AT
+        -- CFUN cycle nor even a full router reboot clears it - the modem module
+        -- doesn't lose power on a router reboot. `mmcli --reset` resets the
+        -- modem's own radio firmware through ModemManager and does clear it.
+        -- The modem's DBus index can change across resets, so resolve it fresh
+        -- each time rather than hardcoding one.
+        -- ModemManager can briefly show zero modems (e.g. up to ~30-40s right
+        -- after the modemmanager service itself restarts) even while the
+        -- modem is physically present and already working - a single mmcli
+        -- -L would silently no-op in that window. Retry for up to ~10s.
+        reboot_cmd = "MODEM=''; i=0; while [ $i -lt 5 ]; do " ..
+            "MODEM=$(mmcli -L 2>/dev/null | grep -oE '/org/freedesktop/ModemManager1/Modem/[0-9]+' | head -1); " ..
+            "[ -n \"$MODEM\" ] && break; i=$((i+1)); sleep 2; done; " ..
+            "[ -n \"$MODEM\" ] && mmcli -m \"$MODEM\" --reset"
+        method_used = "MMCLI"
+        luci.sys.exec("logger -t epm 'Using MMCLI reset reboot method'")
+
     elseif config.reboot_method == 'custom' then
         -- Custom command method
         reboot_cmd = config.reboot_custom_command or 'echo "No custom command configured"'
         method_used = "Custom"
         luci.sys.exec("logger -t epm 'Using custom reboot method: " .. reboot_cmd .. "'")
-        
+
     else
         -- Fallback to AT if unknown method
         local at_device = config.reboot_at_device or '/dev/ttyUSB3'

@@ -630,7 +630,8 @@ var ConfigTab = {
 		var tlsPath = field('tls_gnutls_preload_path', cfg.tls_gnutls_preload_path || '/usr/lib/libcurl-gnutls.so.4');
 
 		var rebootMethod = select('reboot_method', [
-			['at', _('AT Command')], ['qmi', _('QMI Commands')], ['mbim', _('MBIM Command')], ['custom', _('Custom Command')]
+			['at', _('AT Command')], ['qmi', _('QMI Commands')], ['mbim', _('MBIM Command')],
+			['mmcli', _('ModemManager Reset')], ['custom', _('Custom Command')]
 		], cfg.reboot_method || 'at');
 		var rebootAtCommand = field('reboot_at_command', cfg.reboot_at_command || 'AT+CFUN=1,1');
 		var rebootAtDevice = field('reboot_at_device', cfg.reboot_at_device || '/dev/ttyUSB3');
@@ -670,6 +671,11 @@ var ConfigTab = {
 			at: [ valueRow(_('AT Reset Command'), rebootAtCommand), valueRow(_('AT Device for Reboot'), rebootAtDevice) ],
 			qmi: [ valueRow(_('QMI Device for Reboot'), rebootQmiDevice), valueRow(_('QMI SIM Slot for Reboot'), rebootQmiSlot) ],
 			mbim: [ valueRow(_('MBIM Device for Reboot'), rebootMbimDevice) ],
+			mmcli: [ E('div', { 'class': 'cbi-value' }, [
+				E('div', { 'class': 'cbi-value-description', 'style': 'padding-left:0' }, [
+					_('Resets the modem’s own radio firmware through ModemManager (mmcli --reset). No device path needed - the modem is looked up automatically. On some modems (e.g. Foxconn T99W175 / Thales MV31-W) this is the only method that reliably recovers the eSIM management channel after it gets stuck following a profile enable/disable - an AT CFUN cycle or even a full router reboot may not be enough.')
+				])
+			]) ],
 			custom: [ valueRow(_('Custom Command'), rebootCustomCommand) ]
 		};
 		function updateRebootVisibility() {
@@ -730,7 +736,7 @@ var ConfigTab = {
 			E('div', { 'class': 'cbi-section' }, [
 				E('h3', {}, _('Modem Reboot Settings')),
 				valueRow(_('Reboot Method'), rebootMethod)
-			].concat(rebootRows.at, rebootRows.qmi, rebootRows.mbim, rebootRows.custom)),
+			].concat(rebootRows.at, rebootRows.qmi, rebootRows.mbim, rebootRows.mmcli, rebootRows.custom)),
 			E('div', { 'class': 'cbi-page-actions' }, [
 				E('button', { 'class': 'btn cbi-button-action', 'click': save }, [ _('Save') ])
 			])
