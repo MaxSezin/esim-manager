@@ -226,6 +226,14 @@
 .cbi-tabcontainer {
     border: none;
     background: #fff;
+    /* This app always renders its tab content on a white card regardless of
+       the host LuCI theme. Some themes set a light default text color at
+       the body/page level; without an explicit color here, that light text
+       inherits straight through onto our white background and becomes
+       unreadable ("ghost" text). Elements that already declare their own
+       color (status badges, buttons, links, .file-help, etc.) are
+       unaffected since a direct rule always wins over inheritance. */
+    color: #212529;
     min-height: 20em;
 }
 
