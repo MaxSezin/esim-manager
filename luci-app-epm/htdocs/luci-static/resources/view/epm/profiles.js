@@ -107,7 +107,7 @@ return view.extend({
 
 	render: function(res) {
 		this.bodyNode = this.renderBody(res);
-		return this.bodyNode;
+		return E('div', {}, [ common.pageHeader(), this.bodyNode ]);
 	},
 
 	toggle: function(iccid, action, name) {

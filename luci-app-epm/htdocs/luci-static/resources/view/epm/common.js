@@ -97,6 +97,18 @@ function loadingSpinner(text) {
 	return E('p', { 'class': 'cbi-section-descr spinning' }, [ text || _('Loading…') ]);
 }
 
+/* This theme doesn't auto-render a page title/description above the tab
+   bar the way some LuCI themes do for a Map()'s title/descr - without
+   this, the five pages open straight into the tab bar with nothing above
+   it saying which app you're even in. Each page prepends this to its
+   render() output so the heading is identical everywhere. */
+function pageHeader() {
+	return E('div', {}, [
+		E('h2', {}, _('eSIM Profile Manager')),
+		E('div', { 'class': 'cbi-map-descr' }, [ _('Manage eSIM profiles using lpac') ])
+	]);
+}
+
 function waitForModem() {
 	getJSON('status').then(function() {
 		ui.hideModal();
@@ -140,6 +152,7 @@ function restartModem() {
 return baseclass.extend({
 	epmUrl: epmUrl,
 	pageUrl: pageUrl,
+	pageHeader: pageHeader,
 	getJSON: getJSON,
 	postForm: postForm,
 	lpaErrorMessage: lpaErrorMessage,

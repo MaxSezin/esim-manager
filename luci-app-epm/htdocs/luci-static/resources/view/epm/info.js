@@ -30,8 +30,11 @@ return view.extend({
 
 	render: function(data) {
 		if (!data || !data.success) {
-			return E('p', { 'class': 'cbi-section-descr' }, [
-				(data && data.error) || _('Failed to load eSIM information')
+			return E('div', {}, [
+				common.pageHeader(),
+				E('p', { 'class': 'cbi-section-descr' }, [
+					(data && data.error) || _('Failed to load eSIM information')
+				])
 			]);
 		}
 
@@ -46,6 +49,7 @@ return view.extend({
 		}
 
 		return E('div', {}, [
+			common.pageHeader(),
 			E('div', { 'class': 'cbi-section' }, [
 				E('h3', {}, _('Basic Information')),
 				E('table', { 'class': 'table' }, [

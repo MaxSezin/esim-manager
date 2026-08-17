@@ -114,6 +114,7 @@ return view.extend({
 		}
 
 		return E('div', {}, [
+			common.pageHeader(),
 			E('div', { 'class': 'cbi-section' }, [
 				E('h3', {}, _('QR Code Upload')),
 				E('div', { 'class': 'cbi-value' }, [
