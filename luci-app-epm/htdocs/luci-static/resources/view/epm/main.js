@@ -473,7 +473,16 @@ var NotificationsTab = {
 	title: _('Notifications'),
 
 	load: function() {
-		return Promise.all([ getJSON('notifications'), getJSON('profiles') ]);
+		/* Sequential on purpose: both endpoints shell out to lpac, and this
+		   modem's MBIM channel/proxy doesn't reliably handle two concurrent
+		   lpac invocations (occasionally fails with "no channel response
+		   received"). Firing them via Promise.all raced the two calls and
+		   made this tab load "with variable success". */
+		return getJSON('notifications').then(function(notifications) {
+			return getJSON('profiles').then(function(profiles) {
+				return [ notifications, profiles ];
+			});
+		});
 	},
 
 	render: function(res, ctx) {
