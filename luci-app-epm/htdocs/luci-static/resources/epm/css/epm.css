@@ -142,16 +142,15 @@
     margin-top: 5px;
 }
 
-/* Some host themes set text color directly on generic tags (td, legend,
-   label, headings) rather than only at the body level; a direct rule on
-   the element always wins over the inherited color set on .cbi-tabcontainer
+/* Some host themes set text color directly on generic tags (td, label,
+   headings) rather than only at the body level; a direct rule on the
+   element always wins over the inherited color set on .cbi-tabcontainer
    below, so plain content text can stay invisible on our card even with
    that inherited color in place. Force it here instead. Status badges,
    buttons, links, and .file-help keep their own explicit colors untouched
    since this list only covers plain/unstyled elements. */
 .cbi-tabcontainer td,
 .cbi-tabcontainer th,
-.cbi-tabcontainer legend,
 .cbi-tabcontainer label,
 .cbi-tabcontainer .cbi-value-title,
 .cbi-tabcontainer h1,
@@ -163,6 +162,28 @@
 
 .cbi-tabcontainer .file-help {
     color: var(--epm-muted-text) !important;
+}
+
+/* ==========================================================================
+   LOADING SPINNER
+   ========================================================================== */
+
+/* Replaces the old bundled loading.gif - a fixed-palette raster image that
+   never matched the active theme's colors. A CSS spinner instead inherits
+   the theme's accent color and works at any pixel density. */
+.epm-spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    border: 2px solid var(--epm-card-border);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: epm-spin 0.7s linear infinite;
+}
+
+@keyframes epm-spin {
+    to { transform: rotate(360deg); }
 }
 
 /* ==========================================================================
@@ -359,15 +380,16 @@
     margin-top: 0;
 }
 
-/* Reset the browser's native <legend> box (which normally overlaps the
-   fieldset border) and style it as a plain card heading instead. */
-.cbi-tabcontent legend {
-    display: block;
-    width: 100%;
-    float: none;
+/* Section card heading. A native <legend> is deliberately not used here:
+   per the CSS fieldset/legend rendering algorithm it's always laid out
+   straddling the fieldset's own border-box edge rather than as a normal
+   in-flow child, regardless of display/float overrides - which made it
+   impossible to align cleanly with the card's own padding. The view
+   templates use a plain <div class="cbi-section-legend"> as the first
+   child of .cbi-section instead, which behaves predictably. */
+.cbi-section-legend {
     padding: 0 0 12px;
     margin: 0 0 16px;
-    border: none;
     border-bottom: 1px solid var(--epm-card-border);
     font-size: 1.05rem;
     font-weight: 600;

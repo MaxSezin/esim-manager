@@ -1,7 +1,7 @@
 <!-- /usr/lib/lua/luci/view/epm/download.htm -->
 
 <fieldset class="cbi-section">
-    <legend><%:QR Code Upload%></legend>
+    <div class="cbi-section-legend"><%:QR Code Upload%></div>
     <div class="cbi-section-node">
         <div class="cbi-value">
             <label class="cbi-value-title"><%:QR Code Image%>:</label>
@@ -20,7 +20,7 @@
                       
                         <div id="qr-decode-status" style="margin-top: 8px; min-height: 20px;">
                             <div id="qr-decode-loading" style="display: none; color: #0099cc;">
-                                <i class="icon-spinner"></i> <%:Decoding QR code...%>
+                                <span class="epm-spinner" style="width: 12px; height: 12px; border-width: 2px;"></span> <%:Decoding QR code...%>
                             </div>
                             <div id="qr-decode-success" style="display: none; color: green;">
                                 <strong><%:QR Code decoded successfully!%></strong>
@@ -47,7 +47,7 @@
 </fieldset>
 
 <fieldset class="cbi-section">
-    <legend><%:Manual Download%></legend>
+    <div class="cbi-section-legend"><%:Manual Download%></div>
     <div class="cbi-section-node">
         <div class="cbi-value">
             <label class="cbi-value-title"><%:SM-DP+ Server Address%>:</label>
@@ -74,7 +74,7 @@
 
 <div id="download-status" style="margin-top: 20px;">
     <div id="download-loading" style="display: none; text-align: center; padding: 20px;">
-        <img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>" style="vertical-align: middle;" />
+        <span class="epm-spinner"></span>
         <%:Downloading profile...%>
     </div>
     
@@ -90,7 +90,7 @@
 <!-- Output Logs Section - will be created dynamically by JavaScript -->
 <div id="output-logs-section" style="margin-top: 30px; display: none;">
     <fieldset class="cbi-section">
-        <legend><%:Output Logs%></legend>
+        <div class="cbi-section-legend"><%:Output Logs%></div>
         <div class="cbi-section-node">
             <div id="output-logs-content" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 10px; font-family: monospace; font-size: 11px; white-space: pre-wrap; word-break: break-all; max-height: 300px; overflow-y: auto; overflow-x: hidden; width: calc(100% - 22px); max-width: 100%;">
                 <!-- Logs will appear here -->

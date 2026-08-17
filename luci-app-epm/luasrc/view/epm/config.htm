@@ -1,14 +1,14 @@
 <!-- /usr/lib/lua/luci/view/epm/config.htm -->
 
 <div id="config-loading" style="text-align: center; padding: 20px;">
-    <img src="<%=resource%>/epm/icons/loading.gif" alt="<%:Loading%>" style="vertical-align: middle;" />
+    <span class="epm-spinner"></span>
     <%:Loading configuration...%>
 </div>
 
 <div id="config-content" style="display: none;">
     <form id="config-form">
         <fieldset class="cbi-section">
-            <legend><%:Global Settings%></legend>
+            <div class="cbi-section-legend"><%:Global Settings%></div>
             <div class="cbi-section-node">
                 <div class="cbi-value">
                     <label class="cbi-value-title"><%:APDU Backend%></label>
@@ -35,7 +35,7 @@
         </fieldset>
 
         <fieldset class="cbi-section">
-            <legend><%:Device Settings%></legend>
+            <div class="cbi-section-legend"><%:Device Settings%></div>
             <div class="cbi-section-node">
                 <div class="cbi-value" id="at-device-setting">
                     <label class="cbi-value-title"><%:AT Device%></label>
@@ -97,7 +97,7 @@
         </fieldset>
 
         <fieldset class="cbi-section">
-            <legend><%:TLS Workaround%></legend>
+            <div class="cbi-section-legend"><%:TLS Workaround%></div>
             <div class="cbi-section-node">
                 <div class="cbi-value">
                     <label class="cbi-value-title"><%:GnuTLS Preload%></label>
@@ -121,7 +121,7 @@
         </fieldset>
 
         <fieldset class="cbi-section">
-            <legend><%:Modem Reboot Settings%></legend>
+            <div class="cbi-section-legend"><%:Modem Reboot Settings%></div>
             <div class="cbi-section-node">
                 <div class="cbi-value">
                     <label class="cbi-value-title"><%:Reboot Method%></label>

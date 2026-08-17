@@ -685,7 +685,7 @@ function rebootModem() {
     rebootMessage.style.cssText = 'position: fixed; top: 50%; left: 50%; background: #fff; border: 2px solid #007bff; border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 10000; text-align: center; min-width: 300px;';
     rebootMessage.innerHTML = '<h3 style="margin-top: 0; color: #007bff;">' + _('Restarting Modem') + '</h3>' +
                              '<p>' + _('The modem is being restarted. Please wait...') + '</p>' +
-                             '<div style="margin: 15px 0;"><img src="/luci-static/resources/icons/loading.gif" alt="Loading" /></div>' +
+                             '<div style="margin: 15px 0;"><span class="epm-spinner" style="border-color: #dee2e6; border-top-color: #007bff;"></span></div>' +
                              '<p style="font-size: 12px; color: #666;">' + _('This page will reload automatically when the modem is ready.') + '</p>';
     
     document.body.appendChild(rebootMessage);

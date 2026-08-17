@@ -1,13 +1,13 @@
 <!-- /usr/lib/lua/luci/view/epm/notifications.htm -->
 
 <div id="notifications-loading" style="text-align: center; padding: 20px;">
-    <img src="<%=resource%>/epm/icons/loading.gif" alt="<%:Loading%>" style="vertical-align: middle;" />
+    <span class="epm-spinner"></span>
     <%:Loading notifications...%>
 </div>
 
 <div id="notifications-content" style="display: none;">
     <fieldset class="cbi-section">
-        <legend><%:Pending Notifications%></legend>
+        <div class="cbi-section-legend"><%:Pending Notifications%></div>
         <div class="cbi-section-node">
             <div class="table-responsive">
                 <table class="cbi-section-table" id="notifications-table">
@@ -47,7 +47,7 @@
 <!-- Output Logs Section - will be created dynamically by JavaScript -->
 <div id="notifications-logs-section" style="margin-top: 30px; display: none;">
     <fieldset class="cbi-section">
-        <legend><%:Output Logs%></legend>
+        <div class="cbi-section-legend"><%:Output Logs%></div>
         <div class="cbi-section-node">
             <div id="notifications-logs-content" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; padding: 10px; font-family: monospace; font-size: 11px; white-space: pre-wrap; word-break: break-all; max-height: 300px; overflow-y: auto; overflow-x: hidden; width: calc(100% - 22px); max-width: 100%;">
                 <!-- Logs will appear here -->
