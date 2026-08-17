@@ -5,8 +5,25 @@
    ========================================================================== */
 
 :root {
-    --primary-color: #007bff;
-    --primary-hover: #0056b3;
+    /* LuCI's newer themes (the stock "bootstrap" theme since ~21.02, and
+       custom themes built on top of it, e.g. this router's "proton2025")
+       expose a standard set of CSS custom properties for exactly this
+       purpose: --background-color-high/medium/low, --text-color-*, and
+       --border-color-high/medium/low, each already resolved to the right
+       value for the theme's current light/dark mode. Reading those directly
+       (with a static fallback for older/plain themes that don't define
+       them) means this app's surfaces automatically match the active theme
+       instead of us having to hand-maintain a guessed light/dark palette. */
+    --primary-color: var(--primary-color-high, #007bff);
+    --primary-hover: var(--primary-color-medium, #0056b3);
+    /* Status colors (success/danger/warning) are kept as fixed universal
+       hues rather than sourced from the theme: enabled/disabled/error
+       state should stay recognizable (green/red/yellow) regardless of
+       which accent color the user picked for the theme. Note: some themes
+       (including this one) also define custom properties literally named
+       --success-color/--danger-color/--warning-color; referencing those
+       names here directly would self-reference and break, so this is a
+       deliberate plain value, not an oversight. */
     --success-color: #28a745;
     --success-hover: #218838;
     --danger-color: #dc3545;
@@ -17,101 +34,39 @@
     --gray-hover: #5a6268;
     --purple-color: #f1057f;
     --purple-hover: #dd0578;
-    --light-bg: #f8f9fa;
-    --border-color: #dee2e6;
     --border-radius: 6px;
     --box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     --box-shadow-hover: 0 4px 8px rgba(0,0,0,0.15);
 
     /* Surface tokens: this app renders its own card/tab UI inside whatever
        LuCI theme is active. These are the only theme-dependent colors -
-       everything below reads from them so the whole app adapts to light vs.
-       dark themes instead of always assuming a light host theme. */
-    --epm-card-bg: #ffffff;
-    --epm-card-text: #212529;
-    --epm-card-border: var(--border-color);
-    --epm-muted-text: #666666;
-    --epm-header-bg: #f8f9fa;
-    --epm-header-text: #495057;
-    --epm-input-bg: #ffffff;
-    --epm-input-border: #cccccc;
-    --epm-input-text: #212529;
-    --epm-tab-inactive-bg: #f0f0f0;
-    --epm-tab-inactive-text: #666666;
-    --epm-tab-active-bg: #ffffff;
-    --epm-tab-active-text: #000000;
-    --epm-tab-border: #cccccc;
-    --epm-qr-preview-bg: #f9f9f9;
-    --epm-qr-preview-border: #e0e0e0;
-    --epm-dropdown-bg: #ffffff;
-    --epm-dropdown-border: #cccccc;
-    --epm-dropdown-item-border: #f0f0f0;
-    --epm-dropdown-hover-bg: #f8f9fa;
-    --epm-table-hover-bg: #f8f9fa;
-    --epm-button-bg: #ffffff;
-    --epm-button-border: #cccccc;
-    --epm-button-hover-border: #9ca3af;
-}
-
-/* Dark palette: applied when either the browser/OS prefers a dark color
-   scheme, or the host theme explicitly marks itself dark via
-   <html data-theme="dark">. The explicit attribute always wins over the
-   media query (see the un-guarded block below), so a theme toggle that
-   contradicts the OS preference still renders correctly. */
-@media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-        --epm-card-bg: #1c222b;
-        --epm-card-text: #e5e9f0;
-        --epm-card-border: #333b46;
-        --epm-muted-text: #9aa4b2;
-        --epm-header-bg: #242b35;
-        --epm-header-text: #cbd5e1;
-        --epm-input-bg: #161b22;
-        --epm-input-border: #3a4250;
-        --epm-input-text: #e5e9f0;
-        --epm-tab-inactive-bg: #1a2029;
-        --epm-tab-inactive-text: #9aa4b2;
-        --epm-tab-active-bg: #1c222b;
-        --epm-tab-active-text: #ffffff;
-        --epm-tab-border: #333b46;
-        --epm-qr-preview-bg: #1a2029;
-        --epm-qr-preview-border: #333b46;
-        --epm-dropdown-bg: #1c222b;
-        --epm-dropdown-border: #333b46;
-        --epm-dropdown-item-border: #2a313c;
-        --epm-dropdown-hover-bg: #242b35;
-        --epm-table-hover-bg: #242b35;
-        --epm-button-bg: #1c222b;
-        --epm-button-border: #3a4250;
-        --epm-button-hover-border: #55606f;
-    }
-}
-
-:root[data-theme="dark"] {
-    --epm-card-bg: #1c222b;
-    --epm-card-text: #e5e9f0;
-    --epm-card-border: #333b46;
-    --epm-muted-text: #9aa4b2;
-    --epm-header-bg: #242b35;
-    --epm-header-text: #cbd5e1;
-    --epm-input-bg: #161b22;
-    --epm-input-border: #3a4250;
-    --epm-input-text: #e5e9f0;
-    --epm-tab-inactive-bg: #1a2029;
-    --epm-tab-inactive-text: #9aa4b2;
-    --epm-tab-active-bg: #1c222b;
-    --epm-tab-active-text: #ffffff;
-    --epm-tab-border: #333b46;
-    --epm-qr-preview-bg: #1a2029;
-    --epm-qr-preview-border: #333b46;
-    --epm-dropdown-bg: #1c222b;
-    --epm-dropdown-border: #333b46;
-    --epm-dropdown-item-border: #2a313c;
-    --epm-dropdown-hover-bg: #242b35;
-    --epm-table-hover-bg: #242b35;
-    --epm-button-bg: #1c222b;
-    --epm-button-border: #3a4250;
-    --epm-button-hover-border: #55606f;
+       everything below reads from them so the whole app adapts to the host
+       theme (light, dark, or a custom skin) instead of assuming a white
+       host theme. */
+    --epm-card-bg: var(--background-color-medium, #ffffff);
+    --epm-card-text: var(--text-color-high, #212529);
+    --epm-card-border: var(--border-color-medium, #dee2e6);
+    --epm-muted-text: var(--text-color-low, #666666);
+    --epm-header-bg: var(--background-color-low, #f8f9fa);
+    --epm-header-text: var(--text-color-medium, #495057);
+    --epm-input-bg: var(--background-color-low, #ffffff);
+    --epm-input-border: var(--border-color-medium, #cccccc);
+    --epm-input-text: var(--text-color-high, #212529);
+    --epm-tab-inactive-bg: var(--background-color-low, #f0f0f0);
+    --epm-tab-inactive-text: var(--text-color-low, #666666);
+    --epm-tab-active-bg: var(--background-color-medium, #ffffff);
+    --epm-tab-active-text: var(--text-color-highest, #000000);
+    --epm-tab-border: var(--border-color-medium, #cccccc);
+    --epm-qr-preview-bg: var(--background-color-low, #f9f9f9);
+    --epm-qr-preview-border: var(--border-color-medium, #e0e0e0);
+    --epm-dropdown-bg: var(--background-color-low, #ffffff);
+    --epm-dropdown-border: var(--border-color-medium, #cccccc);
+    --epm-dropdown-item-border: var(--border-color-low, #f0f0f0);
+    --epm-dropdown-hover-bg: var(--background-color-low, #f8f9fa);
+    --epm-table-hover-bg: var(--background-color-low, #f8f9fa);
+    --epm-button-bg: var(--background-color-medium, #ffffff);
+    --epm-button-border: var(--border-color-medium, #cccccc);
+    --epm-button-hover-border: var(--border-color-high, #9ca3af);
 }
 
 /* Common form styles */
