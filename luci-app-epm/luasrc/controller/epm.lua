@@ -7,7 +7,22 @@ local util = require "luci.util"
 local uci = require "luci.model.uci".cursor()
 
 function index()
-    entry({"admin", "modem", "epm"}, view("epm/main"), _("eSIM Manager"), 60)
+    -- Five real pages (sibling menu entries under admin/modem/epm), not one
+    -- page with client-side tab-switching: the theme renders the tab bar
+    -- between sibling pages entirely on its own (same mechanism the
+    -- vendor's own "5G Modem" pages use), so active/inactive tab styling
+    -- comes from the theme automatically instead of being hand-rolled.
+    -- Page paths use a "tab-" prefix specifically so they can't collide
+    -- with the JSON API leaf entries below (e.g. .../epm/profiles is
+    -- already the profile-list API endpoint, so the Profiles *page* lives
+    -- at .../epm/tab-profiles instead).
+    entry({"admin", "modem", "epm"}, alias("admin", "modem", "epm", "tab-info"), _("eSIM Manager"), 60)
+    entry({"admin", "modem", "epm", "tab-info"}, view("epm/info"), _("eSIM Info"), 10)
+    entry({"admin", "modem", "epm", "tab-profiles"}, view("epm/profiles"), _("Profiles"), 20)
+    entry({"admin", "modem", "epm", "tab-download"}, view("epm/download"), _("Download Profile"), 30)
+    entry({"admin", "modem", "epm", "tab-notifications"}, view("epm/notifications"), _("Notifications"), 40)
+    entry({"admin", "modem", "epm", "tab-config"}, view("epm/config"), _("Configuration"), 50)
+
     entry({"admin", "modem", "epm", "status"}, call("epm_status"), nil).leaf = true
     entry({"admin", "modem", "epm", "profiles"}, call("epm_profiles"), nil).leaf = true
     entry({"admin", "modem", "epm", "toggle"}, call("epm_toggle"), nil).leaf = true
