@@ -96,6 +96,36 @@ function loadingSpinner(text) {
 	return E('p', { 'class': 'cbi-section-descr spinning' }, [ text || _('Loading…') ]);
 }
 
+/* Shared modem restart flow, callable from any tab. Not just for the
+   post-enable/disable "restart needed" banner: this modem's eUICC/MBIM
+   channel can get stuck on its own (e.g. after a while, or following a
+   slot switch), and the reboot-needed flag doesn't always get set for
+   that. A standalone restart button (Config tab) covers that case too. */
+function restartModem(ctx) {
+	confirmModal(_('Restart modem'),
+		_('The modem will restart now. This takes a couple of minutes and you will lose connectivity temporarily. Continue?')
+	).then(function(yes) {
+		if (!yes) return;
+
+		ui.showModal(_('Restarting Modem'), [
+			E('p', {}, [ _('The modem is being restarted. This page will refresh automatically once it is back.') ]),
+			E('p', { 'class': 'spinning' }, [ _('Please wait…') ])
+		]);
+
+		postForm('reboot_modem', {}).then(function(data) {
+			if (!data.success) {
+				ui.hideModal();
+				notifyError(_('Error'), data.error || _('Failed to restart the modem'));
+				return;
+			}
+			window.setTimeout(function() { ctx.waitForModem(); }, 15000);
+		}).catch(function() {
+			ui.hideModal();
+			notifyError(_('Error'), _('Failed to restart the modem'));
+		});
+	});
+}
+
 /* ==================== TAB: eSIM Info ==================== */
 
 var InfoTab = {
@@ -288,28 +318,7 @@ var ProfilesTab = {
 	},
 
 	reboot: function(ctx) {
-		confirmModal(_('Restart modem'),
-			_('The modem will restart now. This takes a couple of minutes and you will lose connectivity temporarily. Continue?')
-		).then(function(yes) {
-			if (!yes) return;
-
-			ui.showModal(_('Restarting Modem'), [
-				E('p', {}, [ _('The modem is being restarted. This page will refresh automatically once it is back.') ]),
-				E('p', { 'class': 'spinning' }, [ _('Please wait…') ])
-			]);
-
-			postForm('reboot_modem', {}).then(function(data) {
-				if (!data.success) {
-					ui.hideModal();
-					notifyError(_('Error'), data.error || _('Failed to restart the modem'));
-					return;
-				}
-				window.setTimeout(function() { ctx.waitForModem(); }, 15000);
-			}).catch(function() {
-				ui.hideModal();
-				notifyError(_('Error'), _('Failed to restart the modem'));
-			});
-		});
+		restartModem(ctx);
 	}
 };
 
@@ -743,7 +752,20 @@ var ConfigTab = {
 			E('div', { 'class': 'cbi-section' }, [
 				E('h3', {}, _('Modem Reboot Settings')),
 				valueRow(_('Reboot Method'), rebootMethod)
-			].concat(rebootRows.at, rebootRows.qmi, rebootRows.mbim, rebootRows.mmcli, rebootRows.custom)),
+			].concat(rebootRows.at, rebootRows.qmi, rebootRows.mbim, rebootRows.mmcli, rebootRows.custom, [
+				E('div', { 'class': 'cbi-value' }, [
+					E('label', { 'class': 'cbi-value-title' }, []),
+					E('div', { 'class': 'cbi-value-field' }, [
+						E('button', {
+							'class': 'btn cbi-button-remove',
+							'click': function() { restartModem(ctx); }
+						}, [ _('Restart Modem Now') ]),
+						E('div', { 'class': 'cbi-value-description' }, [
+							_('Restarts the modem using the method above, right now - useful if the eSIM channel gets stuck or the modem takes a long time to (re)initialize, independent of any profile enable/disable action.')
+						])
+					])
+				])
+			])),
 			E('div', { 'class': 'cbi-page-actions' }, [
 				E('button', { 'class': 'btn cbi-button-action', 'click': save }, [ _('Save') ])
 			])
