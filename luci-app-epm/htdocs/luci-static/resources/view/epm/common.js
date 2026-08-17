@@ -100,13 +100,34 @@ function loadingSpinner(text) {
 /* This theme doesn't auto-render a page title/description above the tab
    bar the way some LuCI themes do for a Map()'s title/descr - without
    this, the five pages open straight into the tab bar with nothing above
-   it saying which app you're even in. Each page prepends this to its
-   render() output so the heading is identical everywhere. */
-function pageHeader() {
-	return E('div', {}, [
+   it saying which app you're even in. Unlike a normal render() return
+   value, the tab bar itself (.cbi-tabmenu) lives OUTSIDE the region our
+   view's render() populates - it's inserted by the theme itself - so the
+   header can't just be prepended to our own content, it has to be
+   inserted as a sibling before that same tab bar. This is the exact
+   technique the vendor's own modemtabs.js uses for its "Thales MV31-W"
+   bar above the Сеть/eSIM/Модем/... tabs (see its renderBar()).
+   Idempotent: each of the 5 pages calls this once from render(), and a
+   page reload/refresh must not insert a second copy. */
+function ensurePageHeader() {
+	if (document.getElementById('epm-page-header')) return;
+
+	var el = E('div', { 'id': 'epm-page-header' }, [
 		E('h2', {}, _('eSIM Profile Manager')),
 		E('div', { 'class': 'cbi-map-descr' }, [ _('Manage eSIM profiles using lpac') ])
 	]);
+
+	var anchor = document.querySelector('#tabmenu')
+		|| document.querySelector('ul.cbi-tabmenu')
+		|| document.querySelector('.cbi-tabmenu');
+
+	if (anchor && anchor.parentNode) {
+		anchor.parentNode.insertBefore(el, anchor);
+		return;
+	}
+
+	var c = document.querySelector('#maincontent') || document.querySelector('#view') || document.body;
+	if (c) c.insertBefore(el, c.firstChild);
 }
 
 function waitForModem() {
@@ -152,7 +173,7 @@ function restartModem() {
 return baseclass.extend({
 	epmUrl: epmUrl,
 	pageUrl: pageUrl,
-	pageHeader: pageHeader,
+	ensurePageHeader: ensurePageHeader,
 	getJSON: getJSON,
 	postForm: postForm,
 	lpaErrorMessage: lpaErrorMessage,

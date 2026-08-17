@@ -24,6 +24,8 @@ return view.extend({
 	},
 
 	render: function() {
+		common.ensurePageHeader();
+
 		var qrCode = E('input', { 'type': 'hidden' });
 		var qrPreview = E('img', { 'style': 'max-width:300px;max-height:200px;display:none;border:1px solid var(--border-color-medium,#ccc);border-radius:4px' });
 		var qrStatus = E('p', { 'class': 'cbi-section-descr' }, []);
@@ -114,7 +116,6 @@ return view.extend({
 		}
 
 		return E('div', {}, [
-			common.pageHeader(),
 			E('div', { 'class': 'cbi-section' }, [
 				E('h3', {}, _('QR Code Upload')),
 				E('div', { 'class': 'cbi-value' }, [

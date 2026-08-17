@@ -104,8 +104,9 @@ return view.extend({
 	},
 
 	render: function(res) {
+		common.ensurePageHeader();
 		this.bodyNode = this.renderBody(res);
-		return E('div', {}, [ common.pageHeader(), this.bodyNode ]);
+		return this.bodyNode;
 	},
 
 	act: function(endpoint, seqNumber) {

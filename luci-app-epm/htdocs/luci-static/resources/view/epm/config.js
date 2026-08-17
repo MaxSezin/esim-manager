@@ -8,11 +8,10 @@ return view.extend({
 	},
 
 	render: function(data) {
+		common.ensurePageHeader();
+
 		if (!data || !data.success) {
-			return E('div', {}, [
-				common.pageHeader(),
-				E('p', { 'class': 'cbi-section-descr' }, [ (data && data.error) || _('Failed to load configuration') ])
-			]);
+			return E('p', { 'class': 'cbi-section-descr' }, [ (data && data.error) || _('Failed to load configuration') ]);
 		}
 
 		var cfg = data.config.epm || {};
@@ -146,7 +145,6 @@ return view.extend({
 		}
 
 		var body = E('div', {}, [
-			common.pageHeader(),
 			E('div', { 'class': 'cbi-section' }, [
 				E('h3', {}, _('Global Settings')),
 				valueRow(_('APDU Backend'), apduBackend),
