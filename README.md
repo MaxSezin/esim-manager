@@ -52,6 +52,16 @@ WH3000Pro router, OpenWrt 25.12, `mediatek/filogic`) surfaced two gaps in the up
    directly) — but it made debugging genuinely confusing, so it's fixed by quoting the whole log
    message as a single argument instead.
 
+4. **Support both `lpac` package layouts.** `exec_lpac_command()` used to hardcode
+   `/usr/lib/lpac` as the binary path, which only matches the plain official OpenWrt `lpac`
+   package (a single executable file at that path). The community
+   [lpac-build](https://github.com/fildunsky/lpac-build) packages — recommended by several
+   downstream apps, including `luci-app-5gmodem` — install `lpac` as a *directory*
+   (`/usr/lib/lpac/lpac` plus driver plugins under `/usr/lib/lpac/driver/`, needed because OpenWrt
+   strips `RUNPATH`), which the old hardcoded path couldn't run at all. This fork now detects which
+   layout is present and calls the right one, setting `LPAC_DRIVER_HOME` when needed — no more
+   editing this path by hand when switching between the official package and `lpac-build`.
+
 See [asset/test_modem_esim.md](asset/test_modem_esim.md) for the updated compatibility notes on
 the T99W175/MV31-W row.
 
@@ -61,7 +71,9 @@ the T99W175/MV31-W row.
 ## 🛠️ **Requirements**
 
 - OpenWrt with LuCI interface
-- Packages `lpac`, `uqmi`, `mbimcli` and `coreutils-timeout` installed
+- Packages `lpac`, `uqmi`, `mbimcli` and `coreutils-timeout` installed — either the plain official
+  OpenWrt `lpac` package, or a [lpac-build](https://github.com/fildunsky/lpac-build) release; both
+  layouts are auto-detected (see above)
 - Cellular module with eSIM (physical or embedded) support
 - Internet connection (for profile download and delete)
 - For the TLS workaround: a GnuTLS-backed `libcurl` installed separately (e.g.

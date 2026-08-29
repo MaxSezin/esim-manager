@@ -136,11 +136,33 @@ function build_lpac_env()
     return table.concat(env_vars, " ")
 end
 
+-- Resolve the lpac binary path. Some builds (e.g. the community lpac-build
+-- packages) install it as /usr/lib/lpac/lpac plus driver plugins under
+-- /usr/lib/lpac/driver (needs LPAC_DRIVER_HOME, since OpenWrt strips
+-- RUNPATH); the plain official OpenWrt lpac package installs it as a single
+-- file directly at /usr/lib/lpac. Support both so switching between the two
+-- doesn't require editing this path by hand.
+local function resolve_lpac_bin()
+    local f = io.open("/usr/lib/lpac/lpac", "r")
+    if f then
+        f:close()
+        -- LPAC_DRIVER_HOME must sit BEFORE "timeout" in the final command
+        -- line: shell only treats a bare VAR=value token as an environment
+        -- assignment when it appears before the first command word. Placed
+        -- after "timeout N" it would instead be parsed as timeout's own
+        -- command argument (i.e. "run a program literally named
+        -- LPAC_DRIVER_HOME=/usr/lib/lpac"), which fails immediately.
+        return "/usr/lib/lpac/lpac", "LPAC_DRIVER_HOME=/usr/lib/lpac "
+    end
+    return "/usr/lib/lpac", ""
+end
+
 -- Run lpac command with env build from configuration, adding timeout to avoid commands hang
 function exec_lpac_command(cmd_args, timeout_seconds)
     local env = build_lpac_env()
     local timeout = timeout_seconds or 30
-    local full_cmd = env .. " timeout " .. timeout .. " /usr/lib/lpac " .. cmd_args
+    local lpac_bin, driver_home_env = resolve_lpac_bin()
+    local full_cmd = driver_home_env .. env .. " timeout " .. timeout .. " " .. lpac_bin .. " " .. cmd_args
 
     -- Debug
     -- full_cmd already contains shellquote()'d arguments wrapped in single
