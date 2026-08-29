@@ -33,7 +33,7 @@ return view.extend({
 				E('strong', {}, _('Modem Restart Required') + ': '),
 				reboot.reason || _('Profile changes require a modem restart to take effect.'),
 				' ',
-				E('button', {
+				E('button', { 'type': 'button',
 					'class': 'btn cbi-button-action',
 					'click': common.restartModem
 				}, [ _('Restart Now') ])
@@ -66,17 +66,17 @@ return view.extend({
 					E('span', { 'class': 'label ' + (statusClass === 'enabled' ? 'success' : (statusClass === 'disabled' ? 'danger' : 'notice')) }, [ statusLabel ])
 				]),
 				E('td', { 'class': 'td right' }, [
-					E('button', {
+					E('button', { 'type': 'button',
 						'class': 'btn cbi-button-action',
 						'click': function() { self.toggle(p.iccid, enabled ? 'disable' : 'enable', name); }
 					}, [ enabled ? _('Disable') : _('Enable') ]),
 					' ',
-					E('button', {
+					E('button', { 'type': 'button',
 						'class': 'btn',
 						'click': function() { self.rename(p.iccid, name); }
 					}, [ _('Rename') ]),
 					' ',
-					E('button', {
+					E('button', { 'type': 'button',
 						'class': 'btn cbi-button-remove',
 						'click': function() { self.remove(p.iccid, name); }
 					}, [ _('Delete') ])
@@ -98,7 +98,7 @@ return view.extend({
 				].concat(rows))
 			]),
 			E('div', { 'class': 'cbi-page-actions' }, [
-				E('button', { 'class': 'btn cbi-button', 'click': function() { self.reload(); } }, [ _('Refresh') ])
+				E('button', { 'type': 'button', 'class': 'btn cbi-button', 'click': function() { self.reload(); } }, [ _('Refresh') ])
 			])
 		]));
 

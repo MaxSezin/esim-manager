@@ -59,12 +59,12 @@ return view.extend({
 					E('span', { 'class': 'label ' + (opClass[op] || 'notice') }, [ opLabels[op] || op.toUpperCase() ])
 				]),
 				E('td', { 'class': 'td right' }, [
-					E('button', {
+					E('button', { 'type': 'button',
 						'class': 'btn cbi-button-action',
 						'click': function() { self.act('notification_process', n.seqNumber); }
 					}, [ _('Process') ]),
 					' ',
-					E('button', {
+					E('button', { 'type': 'button',
 						'class': 'btn cbi-button-remove',
 						'click': function() { self.act('notification_remove', n.seqNumber); }
 					}, [ _('Remove') ])
@@ -87,17 +87,17 @@ return view.extend({
 					].concat(rows))
 				]),
 				E('div', { 'class': 'cbi-page-actions' }, [
-					E('button', {
+					E('button', { 'type': 'button',
 						'class': 'btn cbi-button-action',
 						'click': function() { self.act('notification_process_all', null); }
 					}, [ _('Process All') ]),
 					' ',
-					E('button', {
+					E('button', { 'type': 'button',
 						'class': 'btn cbi-button-remove',
 						'click': function() { self.act('notification_remove_all', null); }
 					}, [ _('Remove All') ]),
 					' ',
-					E('button', { 'class': 'btn cbi-button', 'click': function() { self.reload(); } }, [ _('Refresh') ])
+					E('button', { 'type': 'button', 'class': 'btn cbi-button', 'click': function() { self.reload(); } }, [ _('Refresh') ])
 				])
 			])
 		]);

@@ -37,6 +37,45 @@ return view.extend({
 
 		var resultBox = E('div', {});
 
+		/* Show what lpac actually did, not just the final outcome. A profile
+		   download goes through several ES9+ steps (initiate authentication,
+		   authenticate client, get bound profile package, ...) before the
+		   final result - previously the backend only kept the last one, so a
+		   failure partway through looked identical to "nothing happened" and
+		   the whole page just sat there loading. epm.lua now returns every
+		   step it saw (see parse_lpac_output()); render them here as a
+		   readable log, plus the raw JSON for anyone who wants the details. */
+		function renderSteps(steps) {
+			while (resultBox.firstChild) resultBox.removeChild(resultBox.firstChild);
+
+			if (!steps || !steps.length) return;
+
+			var list = E('ul', { 'style': 'list-style:none;margin:10px 0;padding:0' });
+			steps.forEach(function(step) {
+				var payload = step.payload || {};
+				var ok = payload.code === undefined || payload.code === 0;
+				var label = payload.message || step.type || _('step');
+				if (payload.data && typeof payload.data === 'string' && payload.data !== label) {
+					label += ' - ' + payload.data;
+				}
+				list.appendChild(E('li', { 'style': 'padding:3px 0;font-family:monospace;font-size:12px' }, [
+					E('span', { 'style': 'color:' + (ok ? 'var(--success-color,#28a745)' : 'var(--danger-color,#dc3545)') }, [ ok ? '✓ ' : '✗ ' ]),
+					label
+				]));
+			});
+
+			var details = E('details', {}, [
+				E('summary', { 'style': 'cursor:pointer;font-size:12px' }, [ _('Raw output') ]),
+				E('pre', { 'style': 'white-space:pre-wrap;font-size:11px' }, [ JSON.stringify(steps, null, 2) ])
+			]);
+
+			resultBox.appendChild(E('div', { 'class': 'cbi-section' }, [
+				E('h3', {}, _('What happened')),
+				list,
+				details
+			]));
+		}
+
 		function decodeQR(file) {
 			qrStatus.textContent = _('Decoding QR code…');
 			qrCode.value = '';
@@ -86,13 +125,23 @@ return view.extend({
 			}
 			if (confCode.value.trim()) params.confirmation_code = confCode.value.trim();
 
+			var elapsed = 0;
+			var elapsedLabel = E('span', {}, [ '0s' ]);
+			var timer = window.setInterval(function() {
+				elapsed++;
+				elapsedLabel.textContent = elapsed + 's';
+			}, 1000);
+
 			ui.showModal(_('Downloading Profile'), [
-				E('p', { 'class': 'spinning' }, [ _('This can take up to a minute…') ])
+				E('p', { 'class': 'spinning' }, [
+					_('Talking to the SM-DP+ server, this can take up to a minute…'), ' (', elapsedLabel, ')'
+				])
 			]);
 
 			common.postForm('download', params).then(function(data) {
+				window.clearInterval(timer);
 				ui.hideModal();
-				resultBox.appendChild(E('pre', { 'style': 'white-space:pre-wrap;font-size:11px' }, [ JSON.stringify(data, null, 2) ]));
+				renderSteps(data.steps);
 
 				if (data.type === 'lpa' && data.payload && data.payload.code === 0) {
 					common.notifySuccess(_('Success'), data.payload.message || _('Profile downloaded successfully'));
@@ -110,6 +159,7 @@ return view.extend({
 					common.notifyError(_('Download failed'), common.lpaErrorMessage(data));
 				}
 			}).catch(function() {
+				window.clearInterval(timer);
 				ui.hideModal();
 				common.notifyError(_('Error'), _('Failed to download profile'));
 			});
@@ -149,7 +199,7 @@ return view.extend({
 				])
 			]),
 			E('div', { 'class': 'cbi-page-actions' }, [
-				E('button', { 'class': 'btn cbi-button-action', 'click': submit }, [ _('Download Profile') ])
+				E('button', { 'type': 'button', 'class': 'btn cbi-button-action', 'click': submit }, [ _('Download Profile') ])
 			]),
 			resultBox
 		]);

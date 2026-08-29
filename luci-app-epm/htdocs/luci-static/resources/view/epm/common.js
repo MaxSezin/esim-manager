@@ -63,9 +63,9 @@ function confirmModal(title, message) {
 		ui.showModal(title, [
 			E('p', {}, [ message ]),
 			E('div', { 'class': 'right' }, [
-				E('button', { 'class': 'btn', 'click': function() { ui.hideModal(); resolve(false); } }, [ _('Cancel') ]),
+				E('button', { 'type': 'button', 'class': 'btn', 'click': function() { ui.hideModal(); resolve(false); } }, [ _('Cancel') ]),
 				' ',
-				E('button', {
+				E('button', { 'type': 'button',
 					'class': 'btn cbi-button-action',
 					'click': function() { ui.hideModal(); resolve(true); }
 				}, [ _('OK') ])
@@ -81,9 +81,9 @@ function promptModal(title, label, value) {
 			E('p', {}, [ label ]),
 			input,
 			E('div', { 'class': 'right', 'style': 'margin-top: 10px' }, [
-				E('button', { 'class': 'btn', 'click': function() { ui.hideModal(); resolve(null); } }, [ _('Cancel') ]),
+				E('button', { 'type': 'button', 'class': 'btn', 'click': function() { ui.hideModal(); resolve(null); } }, [ _('Cancel') ]),
 				' ',
-				E('button', {
+				E('button', { 'type': 'button',
 					'class': 'btn cbi-button-action',
 					'click': function() { var v = input.value; ui.hideModal(); resolve(v); }
 				}, [ _('Save') ])

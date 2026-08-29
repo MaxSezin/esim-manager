@@ -168,7 +168,7 @@ return view.extend({
 				E('div', { 'class': 'cbi-value' }, [
 					E('label', { 'class': 'cbi-value-title' }, []),
 					E('div', { 'class': 'cbi-value-field' }, [
-						E('button', {
+						E('button', { 'type': 'button',
 							'class': 'btn cbi-button-remove',
 							'click': common.restartModem
 						}, [ _('Restart Modem Now') ]),
@@ -179,7 +179,7 @@ return view.extend({
 				])
 			])),
 			E('div', { 'class': 'cbi-page-actions' }, [
-				E('button', { 'class': 'btn cbi-button-action', 'click': save }, [ _('Save') ])
+				E('button', { 'type': 'button', 'class': 'btn cbi-button-action', 'click': save }, [ _('Save') ])
 			])
 		]);
 

@@ -161,6 +161,45 @@ function exec_lpac_command(cmd_args, timeout_seconds)
     return result
 end
 
+-- Parse lpac's (possibly multi-line) JSON output. lpac prints one JSON object
+-- per line for each step of a multi-step operation (e.g. a profile download
+-- goes through es9p_initiate_authentication, es9p_authenticate_client,
+-- es9p_get_bound_profile_package, ... before the final "lpa" result) - only
+-- the LAST "lpa"-type line was ever surfaced to the frontend, so a failure
+-- partway through looked identical to "nothing happened" with no indication
+-- of which step it died on. Returns the final result (unchanged behavior for
+-- existing callers) plus the full ordered list of every step found, so
+-- callers can attach it to their response for the frontend to show as a log.
+local function parse_lpac_output(raw_output)
+    if not raw_output or raw_output == "" then
+        return nil, {}
+    end
+
+    local lines = {}
+    for line in raw_output:gmatch("[^\r\n]+") do
+        if line:match("^%s*{.*}%s*$") then
+            table.insert(lines, line:match("^%s*(.-)%s*$"))
+        end
+    end
+
+    local final_result = nil
+    local steps = {}
+    for _, line in ipairs(lines) do
+        local success, json_obj = pcall(function()
+            return luci.jsonc.parse(line)
+        end)
+
+        if success and json_obj then
+            table.insert(steps, json_obj)
+            if json_obj.type == "lpa" and json_obj.payload then
+                final_result = json_obj
+            end
+        end
+    end
+
+    return final_result, steps
+end
+
 function epm_connectivity_check()
     local cmd = "ping -c 1 -W 3 8.8.8.8 >/dev/null 2>&1"
     local result = os.execute(cmd)
@@ -420,38 +459,27 @@ function epm_download_profile()
     local result, error_msg = exec_lpac_command(cmd_args, 90)
 
     if result then
-        local function parse_lpac_output(raw_output)
-            if not raw_output or raw_output == "" then
-                return nil
-            end
-
-            local lines = {}
-            for line in raw_output:gmatch("[^\r\n]+") do
-                if line:match("^%s*{.*}%s*$") then 
-                    table.insert(lines, line:match("^%s*(.-)%s*$")) 
-                end
-            end
-
-            local final_result = nil
-            for _, line in ipairs(lines) do
-                local success, json_obj = pcall(function()
-                    return luci.jsonc.parse(line)
-                end)
-
-                if success and json_obj and json_obj.type == "lpa" and json_obj.payload then
-                    final_result = json_obj
-                end
-            end
-
-            return final_result
-        end
-
-        local final_result = parse_lpac_output(result)
+        local final_result, lpac_steps = parse_lpac_output(result)
 
         luci.http.prepare_content("application/json")
 
         if final_result and final_result.payload then
-            luci.http.write_json(final_result)
+            -- Build fresh tables rather than reusing final_result.payload
+            -- directly: it's the SAME table as the last entry of
+            -- lpac_steps (both came from parsing the same line), and
+            -- luci.jsonc.stringify appears to track already-serialized
+            -- tables by identity and emit null the second time it meets
+            -- one - even here, where the two references aren't actually a
+            -- cycle, just two branches pointing at the same table.
+            luci.http.write_json({
+                type = final_result.type,
+                payload = {
+                    code = final_result.payload.code,
+                    message = final_result.payload.message,
+                    data = final_result.payload.data
+                },
+                steps = lpac_steps
+            })
         else
             luci.http.write_json({
                 type = "error",
@@ -459,7 +487,8 @@ function epm_download_profile()
                     code = -1,
                     message = "execution_error",
                     data = "No LPA result found in command output"
-                }
+                },
+                steps = lpac_steps
             })
         end
     else
@@ -606,38 +635,27 @@ function epm_notification_process()
     local result = exec_lpac_command(cmd_args, 30)
 
     if result then
-        local function parse_lpac_output(raw_output)
-            if not raw_output or raw_output == "" then
-                return nil
-            end
-
-            local lines = {}
-            for line in raw_output:gmatch("[^\r\n]+") do
-                if line:match("^%s*{.*}%s*$") then 
-                    table.insert(lines, line:match("^%s*(.-)%s*$")) 
-                end
-            end
-
-            local final_result = nil
-            for _, line in ipairs(lines) do
-                local success, json_obj = pcall(function()
-                    return luci.jsonc.parse(line)
-                end)
-
-                if success and json_obj and json_obj.type == "lpa" and json_obj.payload then
-                    final_result = json_obj
-                end
-            end
-
-            return final_result
-        end
-
-        local final_result = parse_lpac_output(result)
+        local final_result, lpac_steps = parse_lpac_output(result)
 
         luci.http.prepare_content("application/json")
 
         if final_result and final_result.payload then
-            luci.http.write_json(final_result)
+            -- Build fresh tables rather than reusing final_result.payload
+            -- directly: it's the SAME table as the last entry of
+            -- lpac_steps (both came from parsing the same line), and
+            -- luci.jsonc.stringify appears to track already-serialized
+            -- tables by identity and emit null the second time it meets
+            -- one - even here, where the two references aren't actually a
+            -- cycle, just two branches pointing at the same table.
+            luci.http.write_json({
+                type = final_result.type,
+                payload = {
+                    code = final_result.payload.code,
+                    message = final_result.payload.message,
+                    data = final_result.payload.data
+                },
+                steps = lpac_steps
+            })
         else
             luci.http.write_json({
                 type = "error",
@@ -645,7 +663,8 @@ function epm_notification_process()
                     code = -1,
                     message = "execution_error",
                     data = "No LPA result found in command output"
-                }
+                },
+                steps = lpac_steps
             })
         end
     else
@@ -677,38 +696,27 @@ function epm_notification_remove()
     local result = exec_lpac_command(cmd_args, 30)
 
     if result then
-        local function parse_lpac_output(raw_output)
-            if not raw_output or raw_output == "" then
-                return nil
-            end
-
-            local lines = {}
-            for line in raw_output:gmatch("[^\r\n]+") do
-                if line:match("^%s*{.*}%s*$") then 
-                    table.insert(lines, line:match("^%s*(.-)%s*$")) 
-                end
-            end
-
-            local final_result = nil
-            for _, line in ipairs(lines) do
-                local success, json_obj = pcall(function()
-                    return luci.jsonc.parse(line)
-                end)
-
-                if success and json_obj and json_obj.type == "lpa" and json_obj.payload then
-                    final_result = json_obj
-                end
-            end
-
-            return final_result
-        end
-
-        local final_result = parse_lpac_output(result)
+        local final_result, lpac_steps = parse_lpac_output(result)
 
         luci.http.prepare_content("application/json")
 
         if final_result and final_result.payload then
-            luci.http.write_json(final_result)
+            -- Build fresh tables rather than reusing final_result.payload
+            -- directly: it's the SAME table as the last entry of
+            -- lpac_steps (both came from parsing the same line), and
+            -- luci.jsonc.stringify appears to track already-serialized
+            -- tables by identity and emit null the second time it meets
+            -- one - even here, where the two references aren't actually a
+            -- cycle, just two branches pointing at the same table.
+            luci.http.write_json({
+                type = final_result.type,
+                payload = {
+                    code = final_result.payload.code,
+                    message = final_result.payload.message,
+                    data = final_result.payload.data
+                },
+                steps = lpac_steps
+            })
         else
             luci.http.write_json({
                 type = "error",
@@ -716,7 +724,8 @@ function epm_notification_remove()
                     code = -1,
                     message = "execution_error",
                     data = "No LPA result found in command output"
-                }
+                },
+                steps = lpac_steps
             })
         end
     else
@@ -736,38 +745,27 @@ function epm_notification_process_all()
     local result = exec_lpac_command("notification process -a", 30)
 
     if result then
-        local function parse_lpac_output(raw_output)
-            if not raw_output or raw_output == "" then
-                return nil
-            end
-
-            local lines = {}
-            for line in raw_output:gmatch("[^\r\n]+") do
-                if line:match("^%s*{.*}%s*$") then 
-                    table.insert(lines, line:match("^%s*(.-)%s*$")) 
-                end
-            end
-
-            local final_result = nil
-            for _, line in ipairs(lines) do
-                local success, json_obj = pcall(function()
-                    return luci.jsonc.parse(line)
-                end)
-
-                if success and json_obj and json_obj.type == "lpa" and json_obj.payload then
-                    final_result = json_obj
-                end
-            end
-
-            return final_result
-        end
-
-        local final_result = parse_lpac_output(result)
+        local final_result, lpac_steps = parse_lpac_output(result)
 
         luci.http.prepare_content("application/json")
 
         if final_result and final_result.payload then
-            luci.http.write_json(final_result)
+            -- Build fresh tables rather than reusing final_result.payload
+            -- directly: it's the SAME table as the last entry of
+            -- lpac_steps (both came from parsing the same line), and
+            -- luci.jsonc.stringify appears to track already-serialized
+            -- tables by identity and emit null the second time it meets
+            -- one - even here, where the two references aren't actually a
+            -- cycle, just two branches pointing at the same table.
+            luci.http.write_json({
+                type = final_result.type,
+                payload = {
+                    code = final_result.payload.code,
+                    message = final_result.payload.message,
+                    data = final_result.payload.data
+                },
+                steps = lpac_steps
+            })
         else
             luci.http.write_json({
                 type = "error",
@@ -775,7 +773,8 @@ function epm_notification_process_all()
                     code = -1,
                     message = "execution_error",
                     data = "No LPA result found in command output"
-                }
+                },
+                steps = lpac_steps
             })
         end
     else
@@ -795,38 +794,27 @@ function epm_notification_process_and_remove_all()
     local result = exec_lpac_command("notification process -a -r", 30)
 
     if result then
-        local function parse_lpac_output(raw_output)
-            if not raw_output or raw_output == "" then
-                return nil
-            end
-
-            local lines = {}
-            for line in raw_output:gmatch("[^\r\n]+") do
-                if line:match("^%s*{.*}%s*$") then 
-                    table.insert(lines, line:match("^%s*(.-)%s*$")) 
-                end
-            end
-
-            local final_result = nil
-            for _, line in ipairs(lines) do
-                local success, json_obj = pcall(function()
-                    return luci.jsonc.parse(line)
-                end)
-
-                if success and json_obj and json_obj.type == "lpa" and json_obj.payload then
-                    final_result = json_obj
-                end
-            end
-
-            return final_result
-        end
-
-        local final_result = parse_lpac_output(result)
+        local final_result, lpac_steps = parse_lpac_output(result)
 
         luci.http.prepare_content("application/json")
 
         if final_result and final_result.payload then
-            luci.http.write_json(final_result)
+            -- Build fresh tables rather than reusing final_result.payload
+            -- directly: it's the SAME table as the last entry of
+            -- lpac_steps (both came from parsing the same line), and
+            -- luci.jsonc.stringify appears to track already-serialized
+            -- tables by identity and emit null the second time it meets
+            -- one - even here, where the two references aren't actually a
+            -- cycle, just two branches pointing at the same table.
+            luci.http.write_json({
+                type = final_result.type,
+                payload = {
+                    code = final_result.payload.code,
+                    message = final_result.payload.message,
+                    data = final_result.payload.data
+                },
+                steps = lpac_steps
+            })
         else
             luci.http.write_json({
                 type = "error",
@@ -834,7 +822,8 @@ function epm_notification_process_and_remove_all()
                     code = -1,
                     message = "execution_error",
                     data = "No LPA result found in command output"
-                }
+                },
+                steps = lpac_steps
             })
         end
     else
@@ -854,38 +843,27 @@ function epm_notification_remove_all()
     local result = exec_lpac_command("notification remove -a", 30)
 
     if result then
-        local function parse_lpac_output(raw_output)
-            if not raw_output or raw_output == "" then
-                return nil
-            end
-
-            local lines = {}
-            for line in raw_output:gmatch("[^\r\n]+") do
-                if line:match("^%s*{.*}%s*$") then 
-                    table.insert(lines, line:match("^%s*(.-)%s*$")) 
-                end
-            end
-
-            local final_result = nil
-            for _, line in ipairs(lines) do
-                local success, json_obj = pcall(function()
-                    return luci.jsonc.parse(line)
-                end)
-
-                if success and json_obj and json_obj.type == "lpa" and json_obj.payload then
-                    final_result = json_obj
-                end
-            end
-
-            return final_result
-        end
-
-        local final_result = parse_lpac_output(result)
+        local final_result, lpac_steps = parse_lpac_output(result)
 
         luci.http.prepare_content("application/json")
 
         if final_result and final_result.payload then
-            luci.http.write_json(final_result)
+            -- Build fresh tables rather than reusing final_result.payload
+            -- directly: it's the SAME table as the last entry of
+            -- lpac_steps (both came from parsing the same line), and
+            -- luci.jsonc.stringify appears to track already-serialized
+            -- tables by identity and emit null the second time it meets
+            -- one - even here, where the two references aren't actually a
+            -- cycle, just two branches pointing at the same table.
+            luci.http.write_json({
+                type = final_result.type,
+                payload = {
+                    code = final_result.payload.code,
+                    message = final_result.payload.message,
+                    data = final_result.payload.data
+                },
+                steps = lpac_steps
+            })
         else
             luci.http.write_json({
                 type = "error",
@@ -893,7 +871,8 @@ function epm_notification_remove_all()
                     code = -1,
                     message = "execution_error",
                     data = "No LPA result found in command output"
-                }
+                },
+                steps = lpac_steps
             })
         end
     else
