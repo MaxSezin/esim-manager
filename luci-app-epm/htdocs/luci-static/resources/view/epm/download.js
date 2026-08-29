@@ -1,5 +1,6 @@
 'use strict';
 'require view';
+'require ui';
 'require view.epm.common as common';
 
 var jsQRPromise = null;

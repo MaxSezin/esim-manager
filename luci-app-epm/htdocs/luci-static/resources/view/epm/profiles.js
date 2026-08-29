@@ -114,7 +114,9 @@ return view.extend({
 	toggle: function(iccid, action, name) {
 		var self = this;
 		var go = function() {
+			common.showBusy(action === 'enable' ? _('Enabling profile…') : _('Disabling profile…'));
 			return common.postForm('toggle', { iccid: iccid, action: action }).then(function(data) {
+				common.hideBusy();
 				if (!data.success) { common.notifyError(_('Error'), data.error || _('Unknown error')); return; }
 				self.reload();
 				if (action === 'enable') {
@@ -122,7 +124,7 @@ return view.extend({
 						_('Profile "%s" has been enabled. It will not be active until the modem is restarted. Restart now?').format(name)
 					).then(function(yes) { if (yes) common.restartModem(); });
 				}
-			}).catch(function() { common.notifyError(_('Error'), _('Failed to toggle profile')); });
+			}).catch(function() { common.hideBusy(); common.notifyError(_('Error'), _('Failed to toggle profile')); });
 		};
 
 		if (action === 'enable') {
@@ -138,10 +140,12 @@ return view.extend({
 		var self = this;
 		common.promptModal(_('Rename profile'), _('New nickname:'), currentName).then(function(newName) {
 			if (newName == null || newName.trim() === '') return;
+			common.showBusy(_('Renaming profile…'));
 			common.postForm('nickname', { iccid: iccid, nickname: newName.trim() }).then(function(data) {
+				common.hideBusy();
 				if (!data.success) { common.notifyError(_('Error'), data.error || _('Unknown error')); return; }
 				self.reload();
-			}).catch(function() { common.notifyError(_('Error'), _('Failed to change profile name')); });
+			}).catch(function() { common.hideBusy(); common.notifyError(_('Error'), _('Failed to change profile name')); });
 		});
 	},
 
@@ -149,12 +153,14 @@ return view.extend({
 		var self = this;
 		common.confirmModal(_('Delete profile'), _('Delete profile "%s"? This cannot be undone.').format(name)).then(function(yes) {
 			if (!yes) return;
+			common.showBusy(_('Deleting profile…'));
 			common.postForm('delete', { iccid: iccid }).then(function(data) {
+				common.hideBusy();
 				if (!data.success) { common.notifyError(_('Error'), data.error || _('Unknown error')); return; }
 				self.reload();
 				common.notifySuccess(_('Profile deleted'),
 					_('To fully release the deleted eSIM, process its delete notification on the Notifications tab as soon as possible.'));
-			}).catch(function() { common.notifyError(_('Error'), _('Failed to delete profile')); });
+			}).catch(function() { common.hideBusy(); common.notifyError(_('Error'), _('Failed to delete profile')); });
 		});
 	},
 

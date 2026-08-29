@@ -112,7 +112,9 @@ return view.extend({
 	act: function(endpoint, seqNumber) {
 		var self = this;
 		var params = seqNumber != null ? { seqNumber: seqNumber } : {};
+		common.showBusy(_('Working…'));
 		common.postForm(endpoint, params).then(function(data) {
+			common.hideBusy();
 			if (data.type === 'lpa' && data.payload && data.payload.code === 0) {
 				common.notifySuccess(_('Success'), data.payload.message || _('Done'));
 				self.reload();
@@ -122,7 +124,7 @@ return view.extend({
 			} else {
 				common.notifyError(_('Error'), common.lpaErrorMessage(data) || data.error);
 			}
-		}).catch(function() { common.notifyError(_('Error'), _('Request failed')); });
+		}).catch(function() { common.hideBusy(); common.notifyError(_('Error'), _('Request failed')); });
 	},
 
 	handleSaveApply: null,

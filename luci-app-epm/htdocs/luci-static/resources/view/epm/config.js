@@ -135,13 +135,15 @@ return view.extend({
 				json_output: jsonOutput.value
 			};
 
+			common.showBusy(_('Saving configuration…'));
 			common.postForm('saveconfig', { config: JSON.stringify({ epm: epmConfig }) }).then(function(res) {
+				common.hideBusy();
 				if (res.success) {
 					common.notifySuccess(_('Saved'), res.message || _('Configuration saved successfully'));
 				} else {
 					common.notifyError(_('Error'), res.error || _('Failed to save configuration'));
 				}
-			}).catch(function() { common.notifyError(_('Error'), _('Failed to save configuration')); });
+			}).catch(function() { common.hideBusy(); common.notifyError(_('Error'), _('Failed to save configuration')); });
 		}
 
 		var body = E('div', {}, [

@@ -97,6 +97,22 @@ function loadingSpinner(text) {
 	return E('p', { 'class': 'cbi-section-descr spinning' }, [ text || _('Loading…') ]);
 }
 
+/* Quick busy indicator for actions that wait on a single postForm() call
+   (toggle/rename/delete a profile, process/remove a notification, save
+   config) - these previously gave no feedback at all while waiting on the
+   modem, which on this hardware can take several seconds to tens of
+   seconds. Not for restartModem()'s own flow, which needs its own longer
+   message and elapsed-time framing. */
+function showBusy(message) {
+	ui.showModal(null, [
+		E('p', { 'class': 'spinning' }, [ message || _('Please wait…') ])
+	]);
+}
+
+function hideBusy() {
+	ui.hideModal();
+}
+
 /* This theme doesn't auto-render a page title/description above the tab
    bar the way some LuCI themes do for a Map()'s title/descr - without
    this, the five pages open straight into the tab bar with nothing above
@@ -174,6 +190,8 @@ return baseclass.extend({
 	epmUrl: epmUrl,
 	pageUrl: pageUrl,
 	ensurePageHeader: ensurePageHeader,
+	showBusy: showBusy,
+	hideBusy: hideBusy,
 	getJSON: getJSON,
 	postForm: postForm,
 	lpaErrorMessage: lpaErrorMessage,
